@@ -1,5 +1,7 @@
 package pawn
 
+import "fmt"
+
 type AlgebraicNotation interface {
 	AN() string
 	FAN() string
@@ -15,4 +17,12 @@ func (p Piece) AN() string {
 
 func (p Piece) FAN() string {
 	return materialFigurines[p.Color][p.Material]
+}
+
+func (p Position) AN() string {
+	return fmt.Sprintf("%s%d", p.File, p.Rank)
+}
+
+func (s Square) AN() string {
+	return fmt.Sprintf("%s%s", s.Piece.AN(), s.Position.AN())
 }

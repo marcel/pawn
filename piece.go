@@ -1,9 +1,9 @@
 package pawn
 
-type Material int
+type Material uint8
 
 const (
-	Pawn Material = iota
+	Pawn Material = iota + 1
 	Rook
 	Bishop
 	Knight

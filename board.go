@@ -8,5 +8,9 @@ Thus each square has a unique identification of file letter followed by rank num
 */
 
 type Board struct {
-	Rows []string
+	Squares []*Square
+}
+
+func NewBoard() Board {
+	return Board{} // TODO
 }
