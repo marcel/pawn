@@ -1,4 +1,7 @@
 language: go
-script: go get github.com/marcel/pawn && go test
+script: go get golang.org/x/tools/cmd/cover && go install github.com/mattn/goveralls && go get github.com/marcel/pawn && go test -v -covermode=count -coverprofile=coverage.out $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 notifications:
   email: false
+env:
+  global:
+    secure: RL2/Qi2er2GlhmsLfAxbFdfSz+LzZ0otEdIc5DEdTjiYKazDK8hmI+WXk9ulkEtV7ys8onPwWBnarJXhAF6QLBShlsBpVqbiUpaNgOjF4P/VacmZhyx5K+FSZh5ngqXakWTVttFSoU5m4Hh8RxdcWDuaeon76HtwlZhJOi+P6G8XqQEgQmqF1/8WhUTqi8a4oF7/SjtL6liUnEpRE1rv3WaaqGO/5xNDInLv/1YqxuD3m120+9PmJnVSZGFSNmvnIMdpTDnIasHCNexFUAVHWROoLRVbY3qnCSjUdhVu+U+KTr4xpO3KFcrZmAEnLDMWL/B0LSopEj0DVZ1FexuChs5vYEDzSJTbWslHMrX9gaQ0TF+tkAqltSfxoN3iDAPvdeijHppgpvgiyoMlg4fBPQjuieZ/kl1ut+zRqf455+jgsUk/rR29k9DuwVgckQe4fjafOu3av13LEhgru+va7fUCg1UE7LnawNOja7z6/45dSxoIk+8VbdBpE6guPoVib8/XrZNQmEotDMf1VJoOCCeiyUoCLlieDFdtqq2ZH/HflU1jWlH+tKfYziWKVYU8oNExs1Yg0uPjDHEOIC8DMEJjJYJupXWVN90KFCfyTxtWUIQzGneor+yTJoLvG12b+cepY2c7CWXoWIq0L3ojG9WQxTuaMJYuCwxM50yLX88=
