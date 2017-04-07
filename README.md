@@ -1,2 +1,2 @@
 # pawn
-Learning go by implementing chess
+Learning Go by implementing chess
