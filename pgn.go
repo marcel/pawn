@@ -33,6 +33,7 @@ func (p PGNParser) ParseFromString(str string) PGN {
 
 func (p PGNParser) ParseFromScanner(sc *scanner.Scanner) PGN {
 	ParseTags(sc, &p.pgn)
+	ParseMoves(sc, &p.pgn)
 
 	return p.pgn
 }
@@ -63,5 +64,5 @@ func ParseTags(sc *scanner.Scanner, pgn *PGN) {
 }
 
 func ParseMoves(sc *scanner.Scanner, pgn *PGN) {
-	// sc.Mode = scanner.ScanIdents | scanner.ScanChars | scanner.ScanInts | scanner.ScanStrings
+	sc.Mode = scanner.ScanIdents | scanner.ScanChars | scanner.ScanInts | scanner.ScanStrings
 }
