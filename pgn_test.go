@@ -1,12 +1,59 @@
 package pawn
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func TestParsePGN(t *testing.T) {
+	assert := assert.New(t)
+
+	pgnStrings := []string{
+		win, draw, finalMoveByWhite, movetextWithRAV, embeddedComments,
+	}
+
+	for _, pgnString := range pgnStrings {
+		pgn := ParsePGN(pgnString)
+
+		assert.Equal(len(pgn.Tags), strings.Count(pgnString, "["))
+		assert.True(len(pgn.Movetext) > 0)
+		assert.True(pgn.Outcome != "")
+
+		trimmedPGNString := strings.TrimRight(pgnString, " \n\r")
+
+		assert.True(
+			strings.HasSuffix(trimmedPGNString, string(pgn.Outcome)),
+			fmt.Sprintf(
+				"'%s' does not contain '%s'",
+				trimmedPGNString[len(trimmedPGNString)-10:],
+				string(pgn.Outcome),
+			),
+		)
+
+		fmt.Println(pgn)
+	}
+}
+
+var win = `
+[Event "WCh 2013"]
+[Site "Chennai IND"]
+[Date "2013.11.21"]
+[Round "9"]
+[White "Anand,V"]
+[Black "Carlsen,M"]
+[Result "0-1"]
+[WhiteElo "2775"]
+[BlackElo "2870"]
+[ECO "E25"]
+
+1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.f3 d5 5.a3 Bxc3+ 6.bxc3 c5 7.cxd5 exd5 8.e3 c4
+9.Ne2 Nc6 10.g4 O-O 11.Bg2 Na5 12.O-O Nb3 13.Ra2 b5 14.Ng3 a5 15.g5 Ne8 16.e4 Nxc1
+17.Qxc1 Ra6 18.e5 Nc7 19.f4 b4 20.axb4 axb4 21.Rxa6 Nxa6 22.f5 b3 23.Qf4 Nc7
+24.f6 g6 25.Qh4 Ne8 26.Qh6 b2 27.Rf4 b1=Q+ 28.Nf1 Qe1  0-1
+`
 var draw = `
 [Event "WCh 2013"]
 [Site "Chennai IND"]
@@ -31,30 +78,73 @@ var draw = `
 63.Kxb6 Kh5 64.h4 Kxh4 65.c5 Nxc5  1/2-1/2
 `
 
-var win = `
-[Event "WCh 2013"]
-[Site "Chennai IND"]
-[Date "2013.11.21"]
-[Round "9"]
-[White "Anand,V"]
+var finalMoveByWhite = `
+[Event "World Blitz 2016"]
+[Site "Doha QAT"]
+[Date "2016.12.30"]
+[Round "21.1"]
+[White "Leko,P"]
 [Black "Carlsen,M"]
-[Result "0-1"]
-[WhiteElo "2775"]
-[BlackElo "2870"]
-[ECO "E25"]
+[Result "1/2-1/2"]
+[WhiteElo "2693"]
+[BlackElo "2840"]
+[ECO "C50"]
 
-1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.f3 d5 5.a3 Bxc3+ 6.bxc3 c5 7.cxd5 exd5 8.e3 c4
-9.Ne2 Nc6 10.g4 O-O 11.Bg2 Na5 12.O-O Nb3 13.Ra2 b5 14.Ng3 a5 15.g5 Ne8 16.e4 Nxc1
-17.Qxc1 Ra6 18.e5 Nc7 19.f4 b4 20.axb4 axb4 21.Rxa6 Nxa6 22.f5 b3 23.Qf4 Nc7
-24.f6 g6 25.Qh4 Ne8 26.Qh6 b2 27.Rf4 b1=Q+ 28.Nf1 Qe1  0-1
+1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O Nf6 5.d3 a6 6.c3 d6 7.Re1 Ba7 8.Bb3 O-O
+9.h3 Ne7 10.Nbd2 Ng6 11.Nf1 c6 12.Ng3 d5 13.exd5 Nxd5 14.d4 exd4 15.Nxd4 h6
+16.Bc2 Re8 17.Rxe8+ Qxe8 18.Bb3 Qe5 19.Kh2 Ngf4 20.Bd2 Bd7 21.Qf3 Ne6 22.Nxe6 Bxe6
+23.Re1 Qd6 24.Kg1 Nf6 25.Bf4 Qe7 26.Bxe6 fxe6 27.Be3 Bxe3 28.Qxe3 Re8 29.Qe5 Qd7
+30.Ne4 Nxe4 31.Qxe4 Qd5 32.a3 Kf7 33.Qf4+ Qf5 34.Qc7+ Re7 35.Qd6 Qc2 36.Qf4+ Kg8
+37.Qb4 Rf7 38.Qb6 Qd2 39.Rxe6 Qc1+ 40.Kh2 Qf4+ 41.Kg1 Qc1+ 42.Kh2  1/2-1/2
 `
 
-func TestParsePGN(t *testing.T) {
-	assert := assert.New(t)
+var movetextWithRAV = `
+[Event "World Blitz 2016"]
+[Site "Doha QAT"]
+[Date "2016.12.30"]
+[Round "21.1"]
+[White "Leko,P"]
+[Black "Carlsen,M"]
+[Result "1/2-1/2"]
+[WhiteElo "2693"]
+[BlackElo "2840"]
+[ECO "C50"]
 
-	pgn := ParsePGN(draw)
+1.e4 b5 (1 ... e6 $1 {is of course better.}) 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O Nf6  1/2-1/2
+`
 
-	assert.Equal(len(pgn.Tags), strings.Count(draw, "["))
-	assert.Equal(pgn.Tags["White"], "Carlsen,M")
-	assert.Equal(pgn.Tags["Result"], "1/2-1/2")
-}
+var embeddedComments = `
+[Event "Baden Baden"]
+[Site "Baden Baden DEU"]
+[Date "1925.04.17"]
+[EventDate "1925.04.16"]
+[Round "2"]
+[Result "0-1"]
+[White "Jan Willem te Kolste"]
+[Black "Carlos Torre Repetto"]
+[ECO "C12"]
+[WhiteElo "?"]
+[BlackElo "?"]
+[PlyCount "54"]
+
+1. e4 {Notes by Lasker} e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 Bb4
+5. Nge2 dxe4 6. a3 Be7 7. Bxf6 gxf6 8. Nxe4 b6 9. N2c3 Bb7
+10. Qf3 {Though check with the Knight is now threatened,
+White's intention is not aggresive but merely the protection
+of the g-pawn.} c6 11. O-O-O f5 12. Ng3 Nd7 13. Bc4 {But here 
+White begins to be aggresive and therby he puts himself in the
+wrong for his aim is not even remotely warranted by his
+advantage. Again he should strive to safeguard his g-pawn by
+13.Nh5, to be followed by Rg1, and afterwards possibly by h3
+and g4 with some little pressure on the center and on the
+h-pawn, proportionate to his advantage in mobility. As he
+plays White begins to slide first very slowly; afterwards more 
+quickly.} Qc7 14. Rhe1 Nf6 15. Qe2 O-O-O {Black has defended
+conscientiously. If White now continues 16.Nxf5 Qf4+ 17.Ne3
+Rxd4 18.Ba6 he can still obtain equality. But here is the
+parting of the ways.} 16. Bxe6+ {White fancies that he holds
+an advantage and attempts to win. The punishment is
+immediate.} fxe6 17. Qxe6+ Rd7 18. Nxf5 Bd8 19. Ne4 Nxe4 
+20. Rxe4 Kb8 21. g3 Bc8 22. Qh6 Rf7 23. Ne3 Rxf2 24. c3 Rg8
+25. d5 Bg5 26. Qxc6 Qxc6 27. dxc6 Bf5 0-1
+`

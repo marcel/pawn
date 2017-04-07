@@ -1,5 +1,7 @@
 package pawn
 
+import "strconv"
+
 type File string
 
 const (
@@ -21,6 +23,11 @@ type Rank uint8
 
 var allRanks = []Rank{
 	1, 2, 3, 4, 5, 6, 7, 8,
+}
+
+func rankFromByte(b byte) Rank {
+	rankInt, _ := strconv.ParseUint(string(b), 10, 8)
+	return Rank(rankInt)
 }
 
 type Position struct {

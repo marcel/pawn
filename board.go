@@ -1,11 +1,27 @@
 package pawn
 
+import "errors"
+
+var (
+	ErrorMoveByWrongColor = errors.New("pawn: move by wrong color")
+)
+
 type Board struct {
 	Squares []*Square
+
+	turnToMove Color
 }
 
 func NewBoard() Board {
-	return Board{Squares: AllSquares()}
+	return Board{Squares: AllSquares(), turnToMove: White}
+}
+
+func (b *Board) MoveFromAlgebraic(an AlgebraicNotation, color Color) (Move, error) {
+	if b.turnToMove != color {
+		return Move{}, ErrorMoveByWrongColor
+	}
+
+	return Move{}, nil // TODO Placeholder while implementing
 }
 
 func (b Board) SquareAtPosition(position Position) (squareAtPosition *Square) {
@@ -20,24 +36,13 @@ func (b Board) SquareAtPosition(position Position) (squareAtPosition *Square) {
 }
 
 type Move struct {
+	Material
 	Piece
 	Position
 	Takes bool
-}
-
-func (p Piece) Takes(position Position) Move {
-	return Move{Piece: p, Position: position, Takes: true}
 }
 
 type Game struct {
 	Board
 	Moves []Move
 }
-
-// func (g *Game) MoveFromTo(fromSquare, toSquare *Square) {
-//
-// }
-//
-// func (g *Game) addMove(move Move) {
-//   g.Moves = append(g.Moves, move)
-// }

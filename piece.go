@@ -43,7 +43,7 @@ type Color string
 
 const (
 	Black Color = "Black"
-	White       = "White"
+	White Color = "White"
 )
 
 type Piece struct {
