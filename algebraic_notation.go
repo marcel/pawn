@@ -1,10 +1,37 @@
 package pawn
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-type AlgebraicNotation interface {
+type AlgebraicNotation string
+
+type AlgebraiclyNotated interface {
 	AN() string
 	FAN() string
+}
+
+func MoveFromAN(an AlgebraicNotation) Move {
+	var piece Piece
+	position := positionFromAN(an)
+
+	if len(an) == 2 {
+		piece = Piece{White, Pawn} // TODO How to figure out Color?
+
+		return Move{piece, position, false}
+	}
+
+	return Move{}
+}
+
+func positionFromAN(an AlgebraicNotation) Position {
+	substring := an[len(an)-2:]
+	file := File(string(substring[0]))
+	rankInt, _ := strconv.ParseUint(string(substring[1]), 10, 8)
+	rank := Rank(rankInt)
+
+	return Position{File: file, Rank: rank}
 }
 
 func (m Material) AN() string {
@@ -24,5 +51,17 @@ func (p Position) AN() string {
 }
 
 func (s Square) AN() string {
-	return fmt.Sprintf("%s%s", s.Piece.AN(), s.Position.AN())
+	return s.Piece.AN() + s.Position.AN()
+}
+
+func (m Move) AN() string {
+	s := m.Piece.AN()
+
+	if m.Takes {
+		s += "x"
+	}
+
+	s += m.Position.AN()
+
+	return s
 }

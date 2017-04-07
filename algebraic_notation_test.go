@@ -6,17 +6,34 @@ import (
 )
 
 func TestAlgebraicNotation(t *testing.T) {
+	assert := assert.New(t)
+
 	whiteRook := Piece{White, Rook}
 
-	assert.Equal(t, whiteRook.Material.AN(), "R")
-	assert.Equal(t, whiteRook.AN(), "R")
-	assert.Equal(t, whiteRook.FAN(), "♖")
+	assert.Equal(whiteRook.Material.AN(), "R")
+	assert.Equal(whiteRook.AN(), "R")
+	assert.Equal(whiteRook.FAN(), "♖")
 
 	e6 := Position{E, 6}
 
-	assert.Equal(t, e6.AN(), "e6")
+	assert.Equal(e6.AN(), "e6")
 
 	ra1 := Square{Position{A, 1}, Piece{White, Rook}}
 
-	assert.Equal(t, ra1.AN(), "Ra1")
+	assert.Equal(ra1.AN(), "Ra1")
+}
+
+func TestMoveFromAlgebraicNotation(t *testing.T) {
+	expectations := map[AlgebraicNotation]Move{
+		"e4": Move{
+			Piece:    Piece{White, Pawn},
+			Position: Position{E, 4},
+			Takes:    false,
+		},
+	}
+
+	for an, expectedMove := range expectations {
+		assert.Equal(t, MoveFromAN(an), expectedMove)
+	}
+
 }

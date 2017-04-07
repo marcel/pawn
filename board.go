@@ -1,16 +1,43 @@
 package pawn
 
-/*
-The vertical columns of squares (called files) from White's left (the queenside) to right (the kingside) are labeled a through h.
-The horizontal rows of squares (called ranks) are numbered 1 to 8, starting from White's side of the board.
-Thus each square has a unique identification of file letter followed by rank number.
-(For example, White's king starts the game on square e1; Black's knight on b8 can move to open squares a6 or c6.)
-*/
-
 type Board struct {
 	Squares []*Square
 }
 
 func NewBoard() Board {
-	return Board{} // TODO
+	return Board{Squares: AllSquares()}
 }
+
+func (b Board) SquareAtPosition(position Position) (squareAtPosition *Square) {
+	for _, square := range b.Squares {
+		if square.Position == position {
+			squareAtPosition = square
+			return
+		}
+	}
+
+	return
+}
+
+type Move struct {
+	Piece
+	Position
+	Takes bool
+}
+
+func (p Piece) Takes(position Position) Move {
+	return Move{Piece: p, Position: position, Takes: true}
+}
+
+type Game struct {
+	Board
+	Moves []Move
+}
+
+// func (g *Game) MoveFromTo(fromSquare, toSquare *Square) {
+//
+// }
+//
+// func (g *Game) addMove(move Move) {
+//   g.Moves = append(g.Moves, move)
+// }

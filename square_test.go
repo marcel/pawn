@@ -25,6 +25,12 @@ func TestNewSquare(t *testing.T) {
 	}
 
 	for position, square := range expectations {
-		assert.Equal(t, square, NewSquare(position))
+		assert.Equal(t, square, *NewSquare(position))
 	}
+}
+
+func TestAllSquares(t *testing.T) {
+	allSquares := AllSquares()
+
+	assert.Equal(t, len(allFiles)*len(allRanks), len(allSquares))
 }

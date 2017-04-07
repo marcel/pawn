@@ -29,11 +29,16 @@ type Position struct {
 }
 
 func allPositions() []Position {
-	positions := make([]Position, len(allFiles)*len(allRanks))
+	positions := []Position{}
 
-	for rank := range allRanks {
-		for file := range allFiles {
-			positions = append(positions, Position{File: File(file), Rank: Rank(rank)})
+	for _, rank := range allRanks {
+		for _, file := range allFiles {
+			positions = append(
+				positions,
+				Position{
+					File: file,
+					Rank: rank,
+				})
 		}
 	}
 
@@ -56,7 +61,7 @@ var materialByFile = map[File]Material{
 	H: Rook,
 }
 
-func NewSquare(position Position) Square {
+func NewSquare(position Position) *Square {
 	var color Color
 	var material Material
 
@@ -75,8 +80,18 @@ func NewSquare(position Position) Square {
 	}
 
 	if color != "" && material != 0 {
-		return Square{Position: position, Piece: Piece{color, material}}
-	} else {
-		return Square{Position: position}
+		return &Square{Position: position, Piece: Piece{color, material}}
 	}
+
+	return &Square{Position: position}
+}
+
+func AllSquares() []*Square {
+	var squares = []*Square{}
+
+	for _, position := range allPositions() {
+		squares = append(squares, NewSquare(position))
+	}
+
+	return squares
 }
