@@ -68,23 +68,26 @@ func NewPGN() PGN {
 
 type PGNParser struct {
 	pgn PGN
+	sc  scanner.Scanner
 }
 
-func NewPGNParser() PGNParser {
-	return PGNParser{pgn: NewPGN()}
+func NewPGNParser() *PGNParser {
+	return &PGNParser{pgn: NewPGN()}
 }
 
-func (p PGNParser) ParseFromString(str string) PGN {
+func (p *PGNParser) ParseFromString(str string) PGN {
 	reader := strings.NewReader(str)
 	scanner := scanner.Scanner{}
 	scanner.Init(reader)
 
-	return p.ParseFromScanner(&scanner)
+	p.sc = scanner
+
+	return p.parse()
 }
 
-func (p PGNParser) ParseFromScanner(sc *scanner.Scanner) PGN {
-	ParseTags(sc, &p.pgn)
-	ParseMoves(sc, &p.pgn)
+func (p *PGNParser) parse() PGN {
+	p.parseTags()
+	p.parseMoves()
 
 	return p.pgn
 }
@@ -96,33 +99,33 @@ func ParsePGN(str string) PGN {
 	return NewPGNParser().ParseFromString(str)
 }
 
-func ParseTags(sc *scanner.Scanner, pgn *PGN) {
-	scan := sc.Peek()
+func (p *PGNParser) parseTags() {
+	scan := p.sc.Peek()
 
 	for scan != scanner.EOF {
 		switch scan {
 		case '[', ']', '\n', '\r':
-			scan = sc.Next()
+			scan = p.sc.Next()
 		case '1': // First move; all tags have been read
 			return
 		default:
-			sc.Scan()
-			tag := sc.TokenText()
-			sc.Scan()
-			value := sc.TokenText()
+			p.sc.Scan()
+			tag := p.sc.TokenText()
+			p.sc.Scan()
+			value := p.sc.TokenText()
 
-			pgn.Tags[tag] = strings.Trim(value, "\"")
+			p.pgn.Tags[tag] = strings.Trim(value, "\"")
 		}
-		scan = sc.Peek()
+		scan = p.sc.Peek()
 	}
 }
 
-func ParseMoves(sc *scanner.Scanner, pgn *PGN) {
-	sc.Mode = scanner.ScanIdents | scanner.ScanChars | scanner.ScanInts | scanner.ScanStrings
+func (p *PGNParser) parseMoves() {
+	p.sc.Mode = scanner.ScanIdents | scanner.ScanChars | scanner.ScanInts | scanner.ScanStrings
 
 	var num, white, black string
 
-	scan := sc.Peek()
+	scan := p.sc.Peek()
 
 	reset := func() {
 		num, white, black = "", "", ""
@@ -134,46 +137,46 @@ func ParseMoves(sc *scanner.Scanner, pgn *PGN) {
 		switch scan {
 		case '{':
 			// Scan past comments
-			scanUntilPast('}', sc, &scan)
+			p.scanUntilPast('}', &scan)
 		case '(':
 			// Scan past RAVs
-			scanUntilPast(')', sc, &scan)
+			p.scanUntilPast(')', &scan)
 		case '#', '.', '+', '!', '?', '\n', '\r':
-			scan = sc.Next()
-			scan = sc.Peek()
+			scan = p.sc.Next()
+			scan = p.sc.Peek()
 		default:
-			sc.Scan()
+			p.sc.Scan()
 
-			if sc.TokenText() == "{" {
+			if p.sc.TokenText() == "{" {
 				scan = '{'
 				continue
-			} else if sc.TokenText() == "(" {
+			} else if p.sc.TokenText() == "(" {
 				scan = '('
 				continue
 			}
 
 			switch {
 			case num == "":
-				num = sc.TokenText()
+				num = p.sc.TokenText()
 
-				scanForOutcome(&num, sc)
+				p.scanForOutcome(&num)
 
 				if reachedOutcome(num) {
-					pgn.Outcome = Outcome(num)
+					p.pgn.Outcome = Outcome(num)
 					return
 				}
 
 				moveNumber, _ := strconv.ParseUint(num, 10, 8)
-				pgn.Movetext = append(pgn.Movetext, &Movetext{Number: uint8(moveNumber)})
+				p.pgn.Movetext = append(p.pgn.Movetext, &Movetext{Number: uint8(moveNumber)})
 			case white == "":
-				scanMovetextForColor(&white, sc, pgn)
-				pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
+				p.scanMovetextForColor(&white)
+				p.pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
 					lastMovetext.WhiteMove = AlgebraicNotation(white)
 					return lastMovetext
 				})
 			case black == "":
-				scanMovetextForColor(&black, sc, pgn)
-				pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
+				p.scanMovetextForColor(&black)
+				p.pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
 					lastMovetext.BlackMove = AlgebraicNotation(black)
 					return lastMovetext
 				})
@@ -181,55 +184,55 @@ func ParseMoves(sc *scanner.Scanner, pgn *PGN) {
 				reset()
 			}
 
-			scan = sc.Peek()
+			scan = p.sc.Peek()
 		}
 	}
 }
 
-func scanUntilPast(r rune, sc *scanner.Scanner, scan *rune) {
+func (p *PGNParser) scanUntilPast(r rune, scan *rune) {
 	for *scan != r && *scan != scanner.EOF {
-		*scan = sc.Next()
+		*scan = p.sc.Next()
 	}
 }
 
-func scanForOutcome(number *string, sc *scanner.Scanner) {
-	for sc.Peek() == '-' {
+func (p *PGNParser) scanForOutcome(number *string) {
+	for p.sc.Peek() == '-' {
 		for i := 0; i < 2; i++ {
-			sc.Scan()
-			*number += sc.TokenText()
+			p.sc.Scan()
+			*number += p.sc.TokenText()
 		}
 	}
 
-	for sc.Peek() == '/' {
+	for p.sc.Peek() == '/' {
 		for i := 0; i < 6; i++ {
-			sc.Scan()
-			*number += sc.TokenText()
+			p.sc.Scan()
+			*number += p.sc.TokenText()
 		}
 	}
 }
 
-func scanMovetextForColor(color *string, sc *scanner.Scanner, pgn *PGN) {
-	*color = sc.TokenText()
+func (p *PGNParser) scanMovetextForColor(color *string) {
+	*color = p.sc.TokenText()
 
-	scanForOutcome(color, sc)
+	p.scanForOutcome(color)
 
 	if reachedOutcome(*color) {
-		pgn.Outcome = Outcome(*color)
+		p.pgn.Outcome = Outcome(*color)
 		return
 	}
 
 	// Pawn promotion
-	if sc.Peek() == '=' {
+	if p.sc.Peek() == '=' {
 		for i := 0; i < 2; i++ {
-			sc.Scan()
-			*color += sc.TokenText()
+			p.sc.Scan()
+			*color += p.sc.TokenText()
 		}
 	}
 
 	// Check or check mate
-	if peek := sc.Peek(); peek == '+' || peek == '#' {
-		sc.Scan()
-		*color += sc.TokenText()
+	if peek := p.sc.Peek(); peek == '+' || peek == '#' {
+		p.sc.Scan()
+		*color += p.sc.TokenText()
 	}
 }
 

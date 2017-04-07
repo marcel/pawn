@@ -32,8 +32,6 @@ func TestParsePGN(t *testing.T) {
 				string(pgn.Outcome),
 			),
 		)
-
-		fmt.Println(pgn)
 	}
 }
 
