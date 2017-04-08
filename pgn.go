@@ -2,6 +2,7 @@ package pawn
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"text/scanner"
@@ -29,40 +30,48 @@ func (t Tags) String() string {
 
 type PGN struct {
 	Tags
-	Movetext []*Movetext
+	Movetext
 	Outcome
 }
 
-func (p PGN) String() string {
-	moveText := []string{}
-
-	for _, mv := range p.Movetext {
-		moveText = append(moveText, mv.String())
-	}
-
-	return fmt.Sprintf("%s\n%s %s\n", p.Tags, strings.Join(moveText, " "), p.Outcome)
-}
-
-func (p PGN) updateLastMovetext(update func(*Movetext) *Movetext) {
-	lastIndex := len(p.Movetext) - 1
-	lastMovetext := p.Movetext[lastIndex]
-	p.Movetext[lastIndex] = update(lastMovetext)
-}
-
 type Movetext struct {
+	Moves []*MovetextMove
+}
+
+type MovetextMove struct {
 	Number    uint8
 	WhiteMove AlgebraicNotation
 	BlackMove AlgebraicNotation
 }
 
+func (m Movetext) updateLastMove(update func(*MovetextMove) *MovetextMove) {
+	lastIndex := len(m.Moves) - 1
+	lastMove := m.Moves[lastIndex]
+	m.Moves[lastIndex] = update(lastMove)
+}
+
+func (p PGN) String() string {
+	return fmt.Sprintf("%s\n%s %s\n", p.Tags, p.Movetext, p.Outcome)
+}
+
 func (m Movetext) String() string {
+	moves := []string{}
+
+	for _, move := range m.Moves {
+		moves = append(moves, move.String())
+	}
+
+	return strings.Join(moves, " ")
+}
+
+func (m MovetextMove) String() string {
 	return fmt.Sprintf("%d.%s %s", m.Number, m.WhiteMove, m.BlackMove)
 }
 
 func NewPGN() PGN {
 	return PGN{
 		Tags:     map[string]string{},
-		Movetext: []*Movetext{},
+		Movetext: Movetext{Moves: []*MovetextMove{}},
 	}
 }
 
@@ -73,6 +82,13 @@ type PGNParser struct {
 
 func NewPGNParser() *PGNParser {
 	return &PGNParser{pgn: NewPGN()}
+}
+
+func NewPGNParserFromReader(r io.Reader) *PGNParser {
+	scanner := scanner.Scanner{}
+	scanner.Init(r)
+
+	return &PGNParser{pgn: NewPGN(), sc: scanner}
 }
 
 func (p *PGNParser) ParseFromString(str string) PGN {
@@ -90,6 +106,25 @@ func (p *PGNParser) parse() PGN {
 	p.parseMoves()
 
 	return p.pgn
+}
+
+func (p *PGNParser) hasNext() bool {
+	for p.sc.Peek() == ' ' || p.sc.Peek() == '\n' {
+		p.sc.Next()
+	}
+
+	return p.sc.Peek() != scanner.EOF
+}
+
+func (p *PGNParser) parseAll() []PGN {
+	pgns := []PGN{}
+
+	for p.hasNext() {
+		pgns = append(pgns, p.parse())
+		p.pgn = NewPGN()
+	}
+
+	return pgns
 }
 
 // Parses a string containing Portable Game Notation and returns a PGN struct
@@ -167,18 +202,29 @@ func (p *PGNParser) parseMoves() {
 				}
 
 				moveNumber, _ := strconv.ParseUint(num, 10, 8)
-				p.pgn.Movetext = append(p.pgn.Movetext, &Movetext{Number: uint8(moveNumber)})
+				p.pgn.Movetext.Moves = append(p.pgn.Movetext.Moves, &MovetextMove{Number: uint8(moveNumber)})
 			case white == "":
 				p.scanMovetextForColor(&white)
-				p.pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
-					lastMovetext.WhiteMove = AlgebraicNotation(white)
-					return lastMovetext
+
+				if p.pgn.Outcome != "" {
+					return
+				}
+
+				p.pgn.Movetext.updateLastMove(func(lastMove *MovetextMove) *MovetextMove {
+					lastMove.WhiteMove = AlgebraicNotation(white)
+					return lastMove
 				})
+
 			case black == "":
 				p.scanMovetextForColor(&black)
-				p.pgn.updateLastMovetext(func(lastMovetext *Movetext) *Movetext {
-					lastMovetext.BlackMove = AlgebraicNotation(black)
-					return lastMovetext
+
+				if p.pgn.Outcome != "" {
+					return
+				}
+
+				p.pgn.Movetext.updateLastMove(func(lastMove *MovetextMove) *MovetextMove {
+					lastMove.BlackMove = AlgebraicNotation(black)
+					return lastMove
 				})
 
 				reset()
@@ -236,7 +282,7 @@ func (p *PGNParser) scanMovetextForColor(color *string) {
 	}
 }
 
-// N.B. Using a redudant map for O(1) looks rather than O(n) array lookup
+// N.B. Using a redundant map for O(1) looks rather than O(n) array lookup
 var outcomes = map[string]Outcome{
 	string(WhiteWin): WhiteWin,
 	string(BlackWin): BlackWin,

@@ -2,6 +2,7 @@ package pawn
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,14 +13,14 @@ func TestParsePGN(t *testing.T) {
 	assert := assert.New(t)
 
 	pgnStrings := []string{
-		win, draw, finalMoveByWhite, movetextWithRAV, embeddedComments,
+		win, draw, finalMoveByWhite, movetextWithRAV, embeddedComments, checkMate,
 	}
 
 	for _, pgnString := range pgnStrings {
 		pgn := ParsePGN(pgnString)
 
 		assert.Equal(len(pgn.Tags), strings.Count(pgnString, "["))
-		assert.True(len(pgn.Movetext) > 0)
+		assert.True(len(pgn.Movetext.Moves) > 0)
 		assert.True(pgn.Outcome != "")
 
 		trimmedPGNString := strings.TrimRight(pgnString, " \n\r")
@@ -33,6 +34,48 @@ func TestParsePGN(t *testing.T) {
 			),
 		)
 	}
+}
+
+func TestParseAll(t *testing.T) {
+	file, err := os.Open("Carlsen.pgn")
+	if err != nil {
+		assert.Fail(t, "Could not open file")
+	}
+
+	parser := NewPGNParserFromReader(file)
+
+	pgns := parser.parseAll()
+
+	invalidPGNs := 0
+
+	for _, pgn := range pgns {
+		for _, moveText := range pgn.Movetext.Moves {
+			if moveText.Number == 0 {
+				invalidPGNs++
+				fmt.Println(pgn)
+				break
+			}
+		}
+	}
+
+	assert.Equal(t, invalidPGNs, 0)
+}
+
+func TestMultipleEntries(t *testing.T) {
+	parser := NewPGNParserFromReader(strings.NewReader(multipleEntries))
+
+	pgns := parser.parseAll()
+
+	assert.Equal(t, len(pgns), 2)
+}
+
+func TestPGNString(t *testing.T) {
+	pgn := ParsePGN(win)
+
+	assert.True(t, strings.Contains(win, pgn.Tags.String()[:10]))
+	assert.True(t, strings.Contains(win, pgn.Movetext.String()[:10]))
+
+	assert.Equal(t, strings.Count(win, "["), strings.Count(pgn.String(), "["))
 }
 
 var win = `
@@ -145,4 +188,56 @@ an advantage and attempts to win. The punishment is
 immediate.} fxe6 17. Qxe6+ Rd7 18. Nxf5 Bd8 19. Ne4 Nxe4 
 20. Rxe4 Kb8 21. g3 Bc8 22. Qh6 Rf7 23. Ne3 Rxf2 24. c3 Rg8
 25. d5 Bg5 26. Qxc6 Qxc6 27. dxc6 Bf5 0-1
+`
+var checkMate = `
+[Event "New Orleans, USA"]
+[Site "New Orleans, USA"]
+[Date "1927.??.??"]
+[EventDate "?"] 
+[Round "?"] 
+[Result "0-1"]
+[White "Dupre"]
+[Black "Carlos Torre Repetto"]
+[ECO "C41"]
+[WhiteElo "?"] 
+[BlackElo "?"] 
+[PlyCount "20"]
+
+1. e4 e5 2. Nf3 d6 3. d4 f5 4. Bc4 exd4 5. exf5 Qe7+ 6. Kd2 g6
+7. Re1 Bh6+ 8. Kd3 Bxf5+ 9. Kxd4 Bg7+ 10. Kd5 c6# 0-1
+`
+var multipleEntries = `
+[Event "World Blitz 2016"]
+[Site "Doha QAT"]
+[Date "2016.12.30"]
+[Round "19.1"]
+[White "Carlsen,M"]
+[Black "Onischuk,V"]
+[Result "1-0"]
+[WhiteElo "2840"]
+[BlackElo "2601"]
+[ECO "B07"]
+
+1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.Be3 a6 5.h3 Bg7 6.f4 b5 7.e5 Nfd7 8.Nf3 Nb6 9.Bd3 Bb7
+10.O-O e6 11.Be4 Bxe4 12.Nxe4 Nc6 13.Qe2 Qd7 14.Rad1 Nd5 15.c3 f5 16.exf6 Nxf6
+17.Nxf6+ Bxf6 18.d5 Ne7 19.f5 exf5 20.Bh6 O-O-O 21.a4 Kb7 22.axb5 axb5 23.Bg5 Bxg5
+24.Nxg5 Ra8 25.Ne6 Nc8 26.b3 Nb6 27.c4 Rhe8 28.c5 Nxd5 29.Rxd5 Qxe6 30.Qxb5+ Kc8
+31.cxd6 cxd6 32.Qc6+  1-0
+
+[Event "World Blitz 2016"]
+[Site "Doha QAT"]
+[Date "2016.12.30"]
+[Round "20.1"]
+[White "Carlsen,M"]
+[Black "Anand,V"]
+[Result "1-0"]
+[WhiteElo "2840"]
+[BlackElo "2779"]
+[ECO "A45"]
+
+1.d4 Nf6 2.Bf4 d5 3.e3 c5 4.c3 Nc6 5.Nd2 e6 6.Ngf3 Bd6 7.Bg3 O-O 8.Bb5 a6
+9.Bxc6 bxc6 10.Qa4 Rb8 11.Qa3 Bxg3 12.hxg3 cxd4 13.cxd4 a5 14.O-O Qb6 15.b3 Ba6
+16.Rfc1 Nd7 17.Qd6 Qa7 18.Rxc6 Bb5 19.Rc7 Rb7 20.Rac1 a4 21.Rxb7 Qxb7 22.Rc7 Qb8
+23.Rxd7 Bxd7 24.Qxd7  1-0
+
 `
