@@ -2,7 +2,6 @@ package pawn
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -37,20 +36,13 @@ func TestParsePGN(t *testing.T) {
 }
 
 func TestParseAll(t *testing.T) {
-	file, err := os.Open("Carlsen.pgn")
-	if err != nil {
-		assert.Fail(t, "Could not open file")
-	}
-
-	parser := NewPGNParserFromReader(file)
-
-	pgns := parser.parseAll()
+	pgns := ParseAllPGNFromFilePath("Carlsen.pgn")
 
 	invalidPGNs := 0
 
 	for _, pgn := range pgns {
-		for _, moveText := range pgn.Movetext.Moves {
-			if moveText.Number == 0 {
+		for _, move := range pgn.Moves {
+			if move.Number == 0 {
 				invalidPGNs++
 				fmt.Println(pgn)
 				break

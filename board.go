@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrorMoveByWrongColor = errors.New("pawn: move by wrong color")
+	ErrorInvalidPosition  = errors.New("pawn: invalid position")
 )
 
 type Board struct {

@@ -1,8 +1,10 @@
 package pawn
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestNewSquare(t *testing.T) {
@@ -33,4 +35,291 @@ func TestAllSquares(t *testing.T) {
 	allSquares := AllSquares()
 
 	assert.Equal(t, len(allFiles)*len(allRanks), len(allSquares))
+}
+
+type PossiblePathsTestSuite struct {
+	suite.Suite
+	square Square
+}
+
+func (s *PossiblePathsTestSuite) SetupTest() {
+	s.square = Square{Piece: Piece{Color: White}}
+}
+
+func TestPossiblePathsTestSuite(t *testing.T) {
+	suite.Run(t, new(PossiblePathsTestSuite))
+}
+
+func (s *PossiblePathsTestSuite) TestPawn() {
+	s.square.Material = Pawn
+	s.square.Color = White
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{E6},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = E2
+
+	s.Equal(
+		[]Path{
+			Path{E3},
+			Path{E4},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = E7
+
+	s.Equal(
+		[]Path{
+			Path{E8},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Color = Black
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{E4},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = E2
+
+	s.Equal(
+		[]Path{
+			Path{E1},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = E7
+
+	s.Equal(
+		[]Path{
+			Path{E6},
+			Path{E5},
+		},
+		s.square.possiblePaths(),
+	)
+}
+
+func (s *PossiblePathsTestSuite) TestKnight() {
+	s.square.Material = Knight
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{F7},
+			Path{G6},
+			Path{G4},
+			Path{F3},
+			Path{D3},
+			Path{C4},
+			Path{C6},
+			Path{D7},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = A1
+
+	s.Equal(
+		[]Path{
+			Path{B3},
+			Path{C2},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = B7
+
+	s.Equal(
+		[]Path{
+			Path{D8},
+			Path{D6},
+			Path{C5},
+			Path{A5},
+		},
+		s.square.possiblePaths(),
+	)
+}
+
+func (s *PossiblePathsTestSuite) TestRook() {
+	s.square.Material = Rook
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{E6, E7, E8},
+			Path{F5, G5, H5},
+			Path{E4, E3, E2, E1},
+			Path{A5, B5, C5, D5},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = A1
+
+	s.Equal(
+		[]Path{
+			Path{A2, A3, A4, A5, A6, A7, A8},
+			Path{B1, C1, D1, E1, F1, G1, H1},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = B7
+
+	s.Equal(
+		[]Path{
+			Path{B8},
+			Path{C7, D7, E7, F7, G7, H7},
+			Path{B6, B5, B4, B3, B2, B1},
+			Path{A7},
+		},
+		s.square.possiblePaths(),
+	)
+}
+
+func (s *PossiblePathsTestSuite) TestBishop() {
+	s.square.Material = Bishop
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{F6, G7, H8},
+			Path{F4, G3, H2},
+			Path{D4, C3, B2, A1},
+			Path{D6, C7, B8},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = A1
+
+	s.Equal(
+		[]Path{
+			Path{B2, C3, D4, E5, F6, G7, H8},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = B7
+
+	s.Equal(
+		[]Path{
+			Path{C8},
+			Path{C6, D5, E4, F3, G2, H1},
+			Path{A6},
+			Path{A8},
+		},
+		s.square.possiblePaths(),
+	)
+}
+
+func (s *PossiblePathsTestSuite) TestQueen() {
+	s.square.Material = Queen
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{E6, E7, E8},
+			Path{F6, G7, H8},
+			Path{F5, G5, H5},
+			Path{F4, G3, H2},
+			Path{E4, E3, E2, E1},
+			Path{D4, C3, B2, A1},
+			Path{A5, B5, C5, D5},
+			Path{D6, C7, B8},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = A1
+
+	s.Equal(
+		[]Path{
+			Path{A2, A3, A4, A5, A6, A7, A8},
+			Path{B2, C3, D4, E5, F6, G7, H8},
+			Path{B1, C1, D1, E1, F1, G1, H1},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = B7
+
+	s.Equal(
+		[]Path{
+			Path{B8},
+			Path{C8},
+			Path{C7, D7, E7, F7, G7, H7},
+			Path{C6, D5, E4, F3, G2, H1},
+			Path{B6, B5, B4, B3, B2, B1},
+			Path{A6},
+			Path{A7},
+			Path{A8},
+		},
+		s.square.possiblePaths(),
+	)
+}
+
+func (s *PossiblePathsTestSuite) TestKing() {
+	s.square.Material = King
+
+	s.square.Position = E5
+
+	s.Equal(
+		[]Path{
+			Path{E6},
+			Path{F6},
+			Path{F5},
+			Path{F4},
+			Path{E4},
+			Path{D4},
+			Path{A5},
+			Path{D6},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = A1
+
+	s.Equal(
+		[]Path{
+			Path{A2},
+			Path{B2},
+			Path{B1},
+		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = B7
+
+	s.Equal(
+		[]Path{
+			Path{B8},
+			Path{C8},
+			Path{C7},
+			Path{C6},
+			Path{B6},
+			Path{A6},
+			Path{A7},
+			Path{A8},
+		},
+		s.square.possiblePaths(),
+	)
 }

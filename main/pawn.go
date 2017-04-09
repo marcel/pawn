@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/marcel/pawn"
 )
 
 func main() {
-	fmt.Printf("%+v\n", pawn.NewBoard().Squares)
+	pgns := pawn.ParseAllPGNFromFilePath(os.Args[1])
+
+	for _, pgn := range pgns {
+		fmt.Println(pgn)
+	}
 }

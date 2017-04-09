@@ -3,6 +3,7 @@ package pawn
 import (
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 	"text/scanner"
@@ -44,10 +45,10 @@ type MovetextMove struct {
 	BlackMove AlgebraicNotation
 }
 
-func (m Movetext) updateLastMove(update func(*MovetextMove) *MovetextMove) {
-	lastIndex := len(m.Moves) - 1
-	lastMove := m.Moves[lastIndex]
-	m.Moves[lastIndex] = update(lastMove)
+func (p PGN) updateLastMove(update func(*MovetextMove)) {
+	lastIndex := len(p.Moves) - 1
+	lastMove := p.Moves[lastIndex]
+	update(lastMove)
 }
 
 func (p PGN) String() string {
@@ -134,6 +135,13 @@ func ParsePGN(str string) PGN {
 	return NewPGNParser().ParseFromString(str)
 }
 
+func ParseAllPGNFromFilePath(str string) []PGN {
+	file, _ := os.Open(str) // TODO error handling
+	defer file.Close()
+
+	return NewPGNParserFromReader(file).parseAll()
+}
+
 func (p *PGNParser) parseTags() {
 	scan := p.sc.Peek()
 
@@ -202,7 +210,7 @@ func (p *PGNParser) parseMoves() {
 				}
 
 				moveNumber, _ := strconv.ParseUint(num, 10, 8)
-				p.pgn.Movetext.Moves = append(p.pgn.Movetext.Moves, &MovetextMove{Number: uint8(moveNumber)})
+				p.pgn.Moves = append(p.pgn.Moves, &MovetextMove{Number: uint8(moveNumber)})
 			case white == "":
 				p.scanMovetextForColor(&white)
 
@@ -210,9 +218,8 @@ func (p *PGNParser) parseMoves() {
 					return
 				}
 
-				p.pgn.Movetext.updateLastMove(func(lastMove *MovetextMove) *MovetextMove {
+				p.pgn.updateLastMove(func(lastMove *MovetextMove) {
 					lastMove.WhiteMove = AlgebraicNotation(white)
-					return lastMove
 				})
 
 			case black == "":
@@ -222,9 +229,8 @@ func (p *PGNParser) parseMoves() {
 					return
 				}
 
-				p.pgn.Movetext.updateLastMove(func(lastMove *MovetextMove) *MovetextMove {
+				p.pgn.updateLastMove(func(lastMove *MovetextMove) {
 					lastMove.BlackMove = AlgebraicNotation(black)
-					return lastMove
 				})
 
 				reset()

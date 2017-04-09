@@ -16,7 +16,7 @@ func TestNewBoard(t *testing.T) {
 func TestSquareAtPosition(t *testing.T) {
 	newBoard := NewBoard()
 
-	position := allPositions()[0]
+	position := allPositions[0]
 
 	squareAtPosition := newBoard.SquareAtPosition(position)
 
