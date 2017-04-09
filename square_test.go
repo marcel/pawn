@@ -82,6 +82,13 @@ func (s *PossiblePathsTestSuite) TestPawn() {
 		s.square.possiblePaths(),
 	)
 
+	s.square.Position = E8
+
+	s.Equal(
+		[]Path{},
+		s.square.possiblePaths(),
+	)
+
 	s.square.Color = Black
 
 	s.square.Position = E5
@@ -109,6 +116,13 @@ func (s *PossiblePathsTestSuite) TestPawn() {
 			Path{E6},
 			Path{E5},
 		},
+		s.square.possiblePaths(),
+	)
+
+	s.square.Position = E1
+
+	s.Equal(
+		[]Path{},
 		s.square.possiblePaths(),
 	)
 }
