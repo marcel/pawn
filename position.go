@@ -51,8 +51,8 @@ type Position struct {
 var allPositions []Position
 
 func init() {
-	for _, rank := range allRanks {
-		for _, file := range allFiles {
+	for _, file := range allFiles {
+		for _, rank := range allRanks {
 			allPositions = append(
 				allPositions,
 				Position{

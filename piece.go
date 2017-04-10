@@ -46,7 +46,11 @@ const (
 	White Color = "White"
 )
 
+var colors = [2]Color{White, Black}
+
 type Piece struct {
 	Color
 	Material
 }
+
+var NoPiece = Piece{}

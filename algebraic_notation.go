@@ -40,6 +40,11 @@ func (an AlgebraicNotation) destinationPosition() string {
 	return ""
 }
 
+// TODO
+/*
+For example, with knights on g1 and d2, either of which might move to f3, the move is specified as Ngf3 or Ndf3, as appropriate. With knights on g5 and g1, the moves are N5f3 or N1f3. As above, an "x" can be inserted to indicate a capture, for example: N5xf3. Another example: two rooks on d3 and h5, either one of which may move to d5. If the rook on d3 moves to d5, it is possible to disambiguate with either Rdd5 or R3d5, but the file takes precedence over the rank, so Rdd5 is correct. (And likewise if the move is a capture, Rdxd5 is correct.)
+*/
+
 func (an AlgebraicNotation) IsPromotion() bool {
 	return an.PromotedTo() != Pawn
 }
