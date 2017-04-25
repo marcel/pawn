@@ -22,6 +22,8 @@ var allFiles = [...]File{
 	A, B, C, D, E, F, G, H,
 }
 
+var NilFile File
+
 // TODO Just make File a uint8 like Rank
 var allFilesMap = map[File]int{
 	A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6, H: 7,
@@ -37,6 +39,8 @@ type Rank uint8
 var allRanks = [...]Rank{
 	1, 2, 3, 4, 5, 6, 7, 8,
 }
+
+var NilRank Rank
 
 func rankFromByte(b byte) Rank {
 	rankInt, _ := strconv.ParseUint(string(b), 10, 8)
@@ -108,6 +112,23 @@ func (p Position) Jump(directions ...Direction) (Position, error) {
 			return p, ErrorInvalidPosition
 		} else {
 			return newPosition.Jump(directions[1:]...)
+		}
+	}
+}
+
+func (p Position) OneMove(direction Direction) Path {
+	switch direction {
+	case Left:
+		if pathLeft := p.Path(direction); len(pathLeft) > 0 {
+			return pathLeft[len(pathLeft)-1:]
+		} else {
+			return Path{}
+		}
+	default:
+		if path := p.Path(direction); len(path) > 0 {
+			return path[:1]
+		} else {
+			return Path{}
 		}
 	}
 }

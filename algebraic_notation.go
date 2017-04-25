@@ -33,11 +33,36 @@ func (an AlgebraicNotation) DestinationPosition() Position {
 }
 
 func (an AlgebraicNotation) destinationPosition() string {
-	destinationPositionPattern, _ := regexp.Compile("[a-h][1-8]")
+	destinationPositionPattern := regexp.MustCompile("[a-h][1-8]")
 	if matches := destinationPositionPattern.FindAllString(string(an), -1); len(matches) > 0 {
 		return matches[len(matches)-1]
 	}
 	return ""
+}
+
+func (an AlgebraicNotation) OriginDisambiguated() bool {
+	return an.OriginFile() != NilFile || an.OriginRank() != NilRank
+}
+
+func (an AlgebraicNotation) OriginRank() Rank {
+	var rank Rank
+	rankPattern := regexp.MustCompile("[1-8]")
+	if matches := rankPattern.FindAllString(string(an), -1); len(matches) > 1 {
+		rank = rankFromByte(matches[0][0])
+	}
+
+	return rank
+}
+
+func (an AlgebraicNotation) OriginFile() File {
+	var file File
+
+	filePattern := regexp.MustCompile("[a-h]")
+	if matches := filePattern.FindAllString(string(an), -1); len(matches) > 1 {
+		file = File(matches[0])
+	}
+
+	return file
 }
 
 // TODO
@@ -93,7 +118,11 @@ func (p Piece) AN() string {
 }
 
 func (p Piece) FAN() string {
-	return materialFigurines[p.Color][p.Material]
+	if p == NoPiece {
+		return " "
+	} else {
+		return materialFigurines[p.Color][p.Material]
+	}
 }
 
 func (p Position) AN() string {

@@ -1,8 +1,14 @@
 package pawn
 
+import "fmt"
+
 type Square struct {
 	Position
 	Piece
+}
+
+func (s Square) String() string {
+	return fmt.Sprintf("[%s %s]", s.Piece.FAN(), s.Position.AN())
 }
 
 func (s Square) possiblePaths() []Path {
@@ -96,25 +102,48 @@ func (s Square) possiblePaths() []Path {
 			s.Path(UpLeftDiagonal),
 		)
 	case King:
-		p := []Path{}
-
-		for _, path := range paths(
-			s.Path(Up),
-			s.Path(UpRightDiagonal),
-			s.Path(Right),
-			s.Path(DownRightDiagonal),
-			s.Path(Down),
-			s.Path(DownLeftDiagonal),
-			s.Path(Left),
-			s.Path(UpLeftDiagonal),
-		) {
-			p = append(p, path[:1])
-		}
-
-		return p
+		return paths(
+			s.OneMove(Up),
+			s.OneMove(UpRightDiagonal),
+			s.OneMove(Right),
+			s.OneMove(DownRightDiagonal),
+			s.OneMove(Down),
+			s.OneMove(DownLeftDiagonal),
+			s.OneMove(Left),
+			s.OneMove(UpLeftDiagonal),
+		)
 	}
 
 	return []Path{}
+}
+
+func (s Square) pathsToTake() []Path {
+	switch s.Material {
+	case Pawn:
+		paths := []Path{}
+		switch s.Color {
+		case White:
+			if upRight, err := s.Jump(Up, Right); err == nil {
+				paths = append(paths, Path{upRight})
+			}
+
+			if upLeft, err := s.Jump(Up, Left); err == nil {
+				paths = append(paths, Path{upLeft})
+			}
+		case Black:
+			if downLeft, err := s.Jump(Down, Right); err == nil {
+				paths = append(paths, Path{downLeft})
+			}
+
+			if downRight, err := s.Jump(Down, Left); err == nil {
+				paths = append(paths, Path{downRight})
+			}
+		}
+
+		return paths
+	default:
+		return s.possiblePaths()
+	}
 }
 
 // Given a set of Path it simply strips out any that

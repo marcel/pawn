@@ -37,6 +37,71 @@ func TestAllSquares(t *testing.T) {
 	assert.Equal(t, len(allFiles)*len(allRanks), len(allSquares))
 }
 
+func TestPathsToTake(t *testing.T) {
+	whitePawn := Square{Piece: Piece{White, Pawn}}
+	blackPawn := Square{Piece: Piece{Black, Pawn}}
+
+	whitePawn.Position = E2
+
+	assert.Equal(t,
+		[]Path{
+			Path{F3}, Path{D3},
+		},
+		whitePawn.pathsToTake(),
+	)
+
+	blackPawn.Position = E7
+	assert.Equal(t,
+		[]Path{
+			Path{F6}, Path{D6},
+		},
+		blackPawn.pathsToTake(),
+	)
+
+	whitePawn.Position = A2
+
+	assert.Equal(t,
+		[]Path{
+			Path{B3},
+		},
+		whitePawn.pathsToTake(),
+	)
+
+	blackPawn.Position = A7
+
+	assert.Equal(t,
+		[]Path{
+			Path{B6},
+		},
+		blackPawn.pathsToTake(),
+	)
+
+	whitePawn.Position = A8
+
+	assert.Equal(t,
+		[]Path{},
+		whitePawn.pathsToTake(),
+	)
+
+	blackPawn.Position = A1
+
+	assert.Equal(t,
+		[]Path{},
+		blackPawn.pathsToTake(),
+	)
+
+	otherMaterial := []Material{
+		Rook, Knight, Bishop, Queen, King,
+	}
+
+	for _, material := range otherMaterial {
+		for _, color := range colors {
+			square := Square{E4, Piece{color, material}}
+			assert.Equal(t, square.possiblePaths(), square.pathsToTake())
+		}
+	}
+}
+
 type PossiblePathsTestSuite struct {
 	suite.Suite
 	square Square
@@ -304,7 +369,7 @@ func (s *PossiblePathsTestSuite) TestKing() {
 			Path{F4},
 			Path{E4},
 			Path{D4},
-			Path{A5},
+			Path{D5},
 			Path{D6},
 		},
 		s.square.possiblePaths(),

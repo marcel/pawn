@@ -3,28 +3,35 @@ package pawn
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestAlgebraicNotation(t *testing.T) {
-	assert := assert.New(t)
+type AlgebraicNotationTestSuite struct {
+	suite.Suite
+}
 
+func TestAlgebraicNotationTestSuite(t *testing.T) {
+	suite.Run(t, new(AlgebraicNotationTestSuite))
+}
+
+func (s *AlgebraicNotationTestSuite) TestAN() {
 	whiteRook := Piece{White, Rook}
 
-	assert.Equal(whiteRook.Material.AN(), "R")
-	assert.Equal(whiteRook.AN(), "R")
-	assert.Equal(whiteRook.FAN(), "♖")
+	s.Equal(whiteRook.Material.AN(), "R")
+	s.Equal(whiteRook.AN(), "R")
+	s.Equal(whiteRook.FAN(), "♜")
+	s.Equal(NoPiece.FAN(), " ")
 
 	e6 := Position{E, 6}
 
-	assert.Equal(e6.AN(), "e6")
+	s.Equal(e6.AN(), "e6")
 
 	ra1 := Square{Position{A, 1}, Piece{White, Rook}}
 
-	assert.Equal(ra1.AN(), "Ra1")
+	s.Equal(ra1.AN(), "Ra1")
 }
 
-func TestAlgebraicNotationMaterial(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestMaterial() {
 	expectations := map[AlgebraicNotation]Material{
 		"d4":    Pawn,
 		"Nf6":   Knight,
@@ -41,11 +48,11 @@ func TestAlgebraicNotationMaterial(t *testing.T) {
 	}
 
 	for an, expectedMaterial := range expectations {
-		assert.Equal(t, an.Material(), expectedMaterial)
+		s.Equal(an.Material(), expectedMaterial)
 	}
 }
 
-func TestAlgebraicNotationTakes(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestTakes() {
 	expectations := map[AlgebraicNotation]bool{
 		"Bxc3+": true,
 		"bxc3":  true,
@@ -65,11 +72,11 @@ func TestAlgebraicNotationTakes(t *testing.T) {
 	}
 
 	for an, didTake := range expectations {
-		assert.Equal(t, an.Takes(), didTake)
+		s.Equal(an.Takes(), didTake)
 	}
 }
 
-func TestMoveFromAlgebraicNotationDestinationPosition(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestDestinationPosition() {
 	expectations := map[AlgebraicNotation]Position{
 		"d4":    Position{D, 4},
 		"Nf6":   Position{F, 6},
@@ -85,11 +92,11 @@ func TestMoveFromAlgebraicNotationDestinationPosition(t *testing.T) {
 	}
 
 	for an, expectedDestinationPosition := range expectations {
-		assert.Equal(t, an.DestinationPosition(), expectedDestinationPosition)
+		s.Equal(an.DestinationPosition(), expectedDestinationPosition)
 	}
 }
 
-func TestAlgebraicNotationPromotion(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestPromotion() {
 	expectations := map[AlgebraicNotation]Material{
 		"d4":    Pawn,
 		"Nf6":   Pawn,
@@ -105,17 +112,17 @@ func TestAlgebraicNotationPromotion(t *testing.T) {
 	}
 
 	for an, expectedMaterial := range expectations {
-		assert.Equal(t, an.PromotedTo(), expectedMaterial)
+		s.Equal(an.PromotedTo(), expectedMaterial)
 
 		if expectedMaterial == Pawn {
-			assert.False(t, an.IsPromotion())
+			s.False(an.IsPromotion())
 		} else {
-			assert.True(t, an.IsPromotion())
+			s.True(an.IsPromotion())
 		}
 	}
 }
 
-func TestAlgebraicNotationIsCheck(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestIsCheck() {
 	isCheck := []AlgebraicNotation{
 		"Bxc3+", "Qb6+", "b1=Q+",
 	}
@@ -125,15 +132,15 @@ func TestAlgebraicNotationIsCheck(t *testing.T) {
 	}
 
 	for _, an := range isCheck {
-		assert.True(t, an.IsCheck())
+		s.True(an.IsCheck())
 	}
 
 	for _, an := range isNotCheck {
-		assert.False(t, an.IsCheck())
+		s.False(an.IsCheck())
 	}
 }
 
-func TestAlgebraicNotationIsCheckMate(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestIsCheckMate() {
 	isCheckMate := []AlgebraicNotation{
 		"Bxc3#", "Qb6#", "b1=Q#",
 	}
@@ -143,30 +150,73 @@ func TestAlgebraicNotationIsCheckMate(t *testing.T) {
 	}
 
 	for _, an := range isCheckMate {
-		assert.True(t, an.IsCheckMate())
+		s.True(an.IsCheckMate())
 	}
 
 	for _, an := range isNotCheckMate {
-		assert.False(t, an.IsCheckMate())
+		s.False(an.IsCheckMate())
 	}
 }
 
-func TestAlgebraicNotationIsCastle(t *testing.T) {
+func (s *AlgebraicNotationTestSuite) TestIsCastle() {
 	var kingSide AlgebraicNotation = "O-O"
 	var queenSide AlgebraicNotation = "O-O-O"
 
-	assert.True(t, kingSide.IsCastleKingSide())
-	assert.False(t, kingSide.IsCastleQueenSide())
+	s.True(kingSide.IsCastleKingSide())
+	s.False(kingSide.IsCastleQueenSide())
 
-	assert.True(t, queenSide.IsCastleQueenSide())
-	assert.False(t, queenSide.IsCastleKingSide())
+	s.True(queenSide.IsCastleQueenSide())
+	s.False(queenSide.IsCastleKingSide())
 
 	for _, an := range []AlgebraicNotation{kingSide, queenSide} {
-		assert.True(t, an.IsCastle())
+		s.True(an.IsCastle())
 	}
 
 	for _, an := range []AlgebraicNotation{"d4", "Nf6", "Bxc3", "cxd4", "Qb26+"} {
-		assert.False(t, an.IsCastle())
+		s.False(an.IsCastle())
+	}
+}
+
+func (s *AlgebraicNotationTestSuite) TestOriginRank() {
+	expectations := map[AlgebraicNotation]Rank{
+		"5f3":    5,
+		"N5f3":   5,
+		"N5xf3":  5,
+		"Ra8b8":  8,
+		"Ra8xb8": 8,
+
+		"Rc1+": NilRank,
+		"Rxb7": NilRank,
+		"Nc3":  NilRank,
+		"Be3+": NilRank,
+		"c4":   NilRank,
+	}
+
+	for an, expectedRank := range expectations {
+		s.Equal(expectedRank, an.OriginRank())
+		s.Equal(expectedRank != NilRank, an.OriginDisambiguated())
+	}
+}
+
+func (s *AlgebraicNotationTestSuite) TestOriginFile() {
+	expectations := map[AlgebraicNotation]File{
+		"cd5":    C,
+		"cxd5":   C,
+		"Rfd1":   F,
+		"Raxb8":  A,
+		"Ra8b8":  A,
+		"Ra8xb8": A,
+
+		"Rc1+": NilFile,
+		"Rxb7": NilFile,
+		"Nc3":  NilFile,
+		"Be3+": NilFile,
+		"c4":   NilFile,
+	}
+
+	for an, expectedFile := range expectations {
+		s.Equal(expectedFile, an.OriginFile())
+		s.Equal(expectedFile != NilFile, an.OriginDisambiguated())
 	}
 }
 

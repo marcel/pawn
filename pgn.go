@@ -35,8 +35,47 @@ type PGN struct {
 	Outcome
 }
 
+func (p PGN) MatchUp() string {
+	return fmt.Sprintf("%s vs %s", p.playerPlaying(White).lastName, p.playerPlaying(Black).lastName)
+}
+
+type playerName struct {
+	firstName string
+	lastName  string
+}
+
+func (p *playerName) Init(color Color, tags Tags) *playerName {
+	var first, last string
+	name, _ := tags[string(color)]
+
+	if nameParts := strings.SplitN(name, ",", 2); len(nameParts) == 2 {
+		first = strings.TrimSpace(nameParts[1])
+		last = strings.TrimSpace(nameParts[0])
+	} else {
+		first = name
+	}
+
+	p.firstName = strings.TrimSpace(first)
+	p.lastName = strings.TrimSpace(last)
+
+	return p
+}
+
+func (p PGN) playerPlaying(color Color) playerName {
+	return *new(playerName).Init(color, p.Tags)
+}
+
 type Movetext struct {
 	Moves []*MovetextMove
+}
+
+func (m Movetext) Turns() []AlgebraicNotation {
+	turns := []AlgebraicNotation{}
+	for _, move := range m.Moves {
+		turns = append(turns, move.WhiteMove, move.BlackMove)
+	}
+
+	return turns
 }
 
 type MovetextMove struct {
@@ -117,7 +156,7 @@ func (p *PGNParser) hasNext() bool {
 	return p.sc.Peek() != scanner.EOF
 }
 
-func (p *PGNParser) parseAll() []PGN {
+func (p *PGNParser) ParseAll() []PGN {
 	pgns := []PGN{}
 
 	for p.hasNext() {
@@ -139,7 +178,7 @@ func ParseAllPGNFromFilePath(str string) []PGN {
 	file, _ := os.Open(str) // TODO error handling
 	defer file.Close()
 
-	return NewPGNParserFromReader(file).parseAll()
+	return NewPGNParserFromReader(file).ParseAll()
 }
 
 func (p *PGNParser) parseTags() {

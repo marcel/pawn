@@ -20,8 +20,11 @@ var materialNames = map[Material]string{
 	King:   "K",
 }
 
+// N.B. The unicode for black is used for white and visa versa
+// because against a terminal window black looks white and white looks
+// black
 var materialFigurines = map[Color]map[Material]string{
-	Black: map[Material]string{
+	White: map[Material]string{
 		Pawn:   "♟",
 		Rook:   "♜",
 		Bishop: "♝",
@@ -29,7 +32,7 @@ var materialFigurines = map[Color]map[Material]string{
 		Queen:  "♛",
 		King:   "♚",
 	},
-	White: map[Material]string{
+	Black: map[Material]string{
 		Pawn:   "♙",
 		Rook:   "♖",
 		Bishop: "♗",

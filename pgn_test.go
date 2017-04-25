@@ -56,7 +56,7 @@ func TestParseAll(t *testing.T) {
 func TestMultipleEntries(t *testing.T) {
 	parser := NewPGNParserFromReader(strings.NewReader(multipleEntries))
 
-	pgns := parser.parseAll()
+	pgns := parser.ParseAll()
 
 	assert.Equal(t, len(pgns), 2)
 }
@@ -68,6 +68,21 @@ func TestPGNString(t *testing.T) {
 	assert.True(t, strings.Contains(win, pgn.Movetext.String()[:10]))
 
 	assert.Equal(t, strings.Count(win, "["), strings.Count(pgn.String(), "["))
+}
+
+func TestMatchUp(t *testing.T) {
+	pgn := ParsePGN(win)
+
+	assert.Equal(t, "Anand vs Carlsen", pgn.MatchUp())
+}
+
+func TestTurns(t *testing.T) {
+	pgn := ParsePGN(win)
+
+	turns := pgn.Turns()
+	assert.Equal(t, AlgebraicNotation("d4"), turns[0])
+	assert.Equal(t, AlgebraicNotation("Nf6"), turns[1])
+	assert.Equal(t, AlgebraicNotation("Qe1"), turns[len(turns)-1])
 }
 
 var win = `
